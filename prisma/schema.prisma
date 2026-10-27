@@ -1,0 +1,75 @@
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL") 
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum SpaceType {
+  DESK          
+  MEETING_ROOM  
+  BOOTH         
+}
+
+enum ReservationStatus {
+  CONFIRMED     
+  CANCELLED     
+}
+
+model User {
+  id               String        @id @default(uuid())
+  name             String
+  email            String        @unique
+  passwordHash     String
+  role             Role          @default(USER)
+  refreshTokenHash String?       
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  reservations     Reservation[]
+}
+
+model Space {
+  id           String        @id @default(uuid())
+  name         String
+  description  String
+  type         SpaceType     @default(DESK)
+  capacity     Int
+  pricePerHour Decimal       @db.Decimal(10, 2) 
+  imageUrl     String                           
+  isActive     Boolean       @default(true)     
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  reservations Reservation[] 
+
+  @@index([isActive, type])
+}
+
+model Reservation {
+  id         String            @id @default(uuid())
+  startTime  DateTime                           
+  endTime    DateTime                           
+  totalPrice Decimal           @db.Decimal(10, 2) 
+  status     ReservationStatus @default(CONFIRMED) 
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+
+  userId     String
+  user       User              @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  spaceId    String
+  space      Space             @relation(fields: [spaceId], references: [id], onDelete: Restrict)
+
+  
+  @@index([spaceId, status, startTime, endTime])
+  @@index([userId, status, startTime, endTime])
+}
