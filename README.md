@@ -82,4 +82,4 @@ cospace/
 ```
 
 ## 9. Enlace a la Aplicación Desplegada
-- **Despliegue en Vercel:** [Actualizar con tu enlace público de Vercel]
+- **Despliegue en Vercel:** https://cospace-29mi.vercel.app/
