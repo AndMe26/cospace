@@ -27,7 +27,7 @@ export default async function LoginPage(): Promise<React.JSX.Element> {
           <h2 className="text-2xl font-black text-indigo-600 tracking-tight">CoSpace</h2>
           <h1 className="mt-2 text-3xl font-extrabold text-gray-900">Inicia sesión en tu cuenta</h1>
           <p className="mt-2 text-sm text-gray-600">
-            ¿Aún no tienes cuenta?{' '}
+            ¿Aún no tienes cuenta? ✨ {' '}
             <a href="/register" className="font-medium text-indigo-600 hover:text-indigo-500">
               Regístrate aquí
             </a>
