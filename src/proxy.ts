@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { verifyAccessToken } from '@/lib/auth';
+import { getBaseUrl } from '@/lib/url';
 
 /**
  * Proxy de Intercepción y Seguridad (Next.js 16)
@@ -18,7 +19,7 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 
     // Si no hay token de acceso, redirigir inmediatamente al login
     if (!accessToken) {
-      const loginUrl = new URL('/login', request.url);
+      const loginUrl = new URL('/login', getBaseUrl(request));
       loginUrl.searchParams.set('from', pathname);
       return NextResponse.redirect(loginUrl);
     }
@@ -27,7 +28,7 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
     const payload = await verifyAccessToken(accessToken);
 
     if (!payload) {
-      const loginUrl = new URL('/login', request.url);
+      const loginUrl = new URL('/login', getBaseUrl(request));
       loginUrl.searchParams.set('from', pathname);
       return NextResponse.redirect(loginUrl);
     }
@@ -35,7 +36,7 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
     // Validar control de acceso basado en roles (RBAC) para la sección administrativa
     if (isAdminRoute && payload.role !== 'ADMIN') {
       // Si un usuario común intenta entrar a /admin, redirigirlo a su dashboard
-      return NextResponse.redirect(new URL('/dashboard', request.url));
+      return NextResponse.redirect(new URL('/dashboard', getBaseUrl(request)));
     }
   }
 
