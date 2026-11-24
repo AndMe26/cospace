@@ -1,0 +1,38 @@
+import { NextResponse } from "next/server";
+import { subirFoto } from "@/lib/s3/upload";
+
+export const runtime = "nodejs";
+
+const TIPOS: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+};
+const MAX_BYTES = 5 * 1024 * 1024;
+
+export async function POST(request: Request): Promise<NextResponse> {
+  const formData = await request.formData();
+  const foto = formData.get("foto");
+
+  if (!(foto instanceof File)) {
+    return NextResponse.json({ error: "Falta el archivo 'foto'" }, { status: 400 });
+  }
+
+  const extension = TIPOS[foto.type];
+  if (!extension) {
+    return NextResponse.json({ error: "Solo JPG, PNG o WEBP" }, { status: 400 });
+  }
+
+  if (foto.size > MAX_BYTES) {
+    return NextResponse.json({ error: "Máximo 5 MB" }, { status: 413 });
+  }
+
+  try {
+    const body = Buffer.from(await foto.arrayBuffer());
+    const key = await subirFoto({ body, contentType: foto.type, extension });
+    return NextResponse.json({ key }, { status: 201 });
+  } catch (error) {
+    console.error("Error subiendo a S3:", error);
+    return NextResponse.json({ error: "No se pudo subir la foto" }, { status: 500 });
+  }
+}
