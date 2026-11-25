@@ -34,7 +34,7 @@ export default async function SpacesCatalogPage(): Promise<React.JSX.Element> {
               <div>
                 <div className="relative h-48 w-full bg-indigo-50">
                   <Image
-                    src="/space-placeholder.svg"
+                    src={space.imageUrl || '/space-placeholder.svg'}
                     alt={space.name}
                     fill
                     className="object-cover"

@@ -34,7 +34,7 @@ export default async function SpaceDetailPage({
       <div className="bg-white rounded-3xl border border-gray-200 overflow-hidden shadow-sm">
         <div className="relative h-64 sm:h-80 w-full bg-indigo-50">
           <Image
-            src="/space-placeholder.svg"
+            src={space.imageUrl || '/space-placeholder.svg'}
             alt={space.name}
             fill
             priority
