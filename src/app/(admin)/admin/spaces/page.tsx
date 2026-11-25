@@ -9,6 +9,7 @@ interface Space {
   type: string;
   capacity: number;
   pricePerHour: number;
+  imageUrl: string;
   isActive: boolean;
 }
 
@@ -25,6 +26,8 @@ export default function AdminSpacesPage(): React.JSX.Element {
   const [type, setType] = useState('DESK');
   const [capacity, setCapacity] = useState('4');
   const [pricePerHour, setPricePerHour] = useState('25');
+  const [photo, setPhoto] = useState<File | null>(null);
+  const [fileInputKey, setFileInputKey] = useState(0);
 
   useEffect(() => {
     let isMounted = true;
@@ -72,6 +75,8 @@ export default function AdminSpacesPage(): React.JSX.Element {
     setType('DESK');
     setCapacity('4');
     setPricePerHour('25');
+    setPhoto(null);
+    setFileInputKey((k) => k + 1);
   };
 
   const handleStartEdit = (space: Space): void => {
@@ -81,6 +86,8 @@ export default function AdminSpacesPage(): React.JSX.Element {
     setType(space.type);
     setCapacity(String(space.capacity));
     setPricePerHour(String(space.pricePerHour));
+    setPhoto(null);
+    setFileInputKey((k) => k + 1);
     setError(null);
     setSuccessMessage(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -94,7 +101,25 @@ export default function AdminSpacesPage(): React.JSX.Element {
     const endpoint = editingSpaceId ? `/api/spaces/${editingSpaceId}` : '/api/spaces';
     const method = editingSpaceId ? 'PATCH' : 'POST';
 
+    if (!editingSpaceId && !photo) {
+      setError('Selecciona una foto del espacio');
+      return;
+    }
+
     try {
+      let imageUrl: string | undefined;
+
+      if (photo) {
+        const formData = new FormData();
+        formData.append('foto', photo);
+        const uploadRes = await fetch('/api/fotos', { method: 'POST', body: formData });
+        const uploadData = (await uploadRes.json()) as { url?: string; error?: string };
+        if (!uploadRes.ok || !uploadData.url) {
+          throw new Error(uploadData.error || 'No se pudo subir la foto');
+        }
+        imageUrl = uploadData.url;
+      }
+
       const res = await fetch(endpoint, {
         method,
         headers: { 'Content-Type': 'application/json' },
@@ -104,6 +129,7 @@ export default function AdminSpacesPage(): React.JSX.Element {
           type,
           capacity: parseInt(capacity, 10),
           pricePerHour: parseFloat(pricePerHour),
+          ...(imageUrl ? { imageUrl } : {}),
         }),
       });
 
@@ -224,8 +250,21 @@ export default function AdminSpacesPage(): React.JSX.Element {
             >
               <option value="DESK">Escritorio (DESK)</option>
               <option value="MEETING_ROOM">Sala de Reuniones (MEETING_ROOM)</option>
-              <option value="PRIVATE_BOOTH">Cabina Privada (PRIVATE_BOOTH)</option>
+              <option value="BOOTH">Cabina Privada (BOOTH)</option>
             </select>
+          </div>
+          <div className="sm:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Foto del espacio {editingSpaceId ? '(opcional)' : ''}
+            </label>
+            <input
+              key={fileInputKey}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={(e) => setPhoto(e.target.files?.[0] ?? null)}
+              className="w-full text-sm text-gray-700 file:mr-4 file:rounded-xl file:border-0 file:bg-indigo-50 file:px-4 file:py-2 file:text-indigo-700 hover:file:bg-indigo-100"
+            />
+            <p className="text-xs text-gray-500 mt-1">JPG, PNG o WEBP. Máximo 5 MB.</p>
           </div>
           <div className="sm:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
@@ -292,12 +331,19 @@ export default function AdminSpacesPage(): React.JSX.Element {
               className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm flex flex-col justify-between"
             >
               <div>
+                {space.imageUrl && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={space.imageUrl}
+                    alt={space.name}
+                    className="w-full h-40 object-cover rounded-xl mb-4"
+                  />
+                )}
                 <div className="flex justify-between items-start mb-3">
                   <h3 className="text-lg font-semibold text-gray-900">{space.name}</h3>
                   <span
-                    className={`text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-wide ${
-                      space.isActive ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-600'
-                    }`}
+                    className={`text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-wide ${space.isActive ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-600'
+                      }`}
                   >
                     {space.isActive ? 'Activo' : 'Inactivo'}
                   </span>
