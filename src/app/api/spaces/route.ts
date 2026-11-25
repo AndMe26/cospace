@@ -11,7 +11,12 @@ const spaceSchema = z.object({
   type: z.nativeEnum(SpaceType),
   capacity: z.number().int().positive('La capacidad debe ser mayor a 0'),
   pricePerHour: z.number().positive('El precio por hora debe ser mayor a 0'),
-  imageUrl: z.string().url('URL de imagen inválida'),
+  imageUrl: z
+    .string()
+    .refine(
+      (v) => v.startsWith('/api/imagenes/fotos/') || /^https?:\/\//.test(v),
+      'URL de imagen inválida'
+    ),
 });
 
 /**

@@ -30,7 +30,10 @@ export async function POST(request: Request): Promise<NextResponse> {
   try {
     const body = Buffer.from(await foto.arrayBuffer());
     const key = await subirFoto({ body, contentType: foto.type, extension });
-    return NextResponse.json({ key }, { status: 201 });
+    return NextResponse.json(
+      { key, url: `/api/imagenes/${key}` },
+      { status: 201 }
+    );
   } catch (error) {
     console.error("Error subiendo a S3:", error);
     return NextResponse.json({ error: "No se pudo subir la foto" }, { status: 500 });
