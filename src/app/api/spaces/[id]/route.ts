@@ -11,7 +11,13 @@ const updateSpaceSchema = z.object({
   type: z.nativeEnum(SpaceType),
   capacity: z.number().int().positive('La capacidad debe ser mayor a 0'),
   pricePerHour: z.number().positive('El precio por hora debe ser mayor a 0'),
-  imageUrl: z.string().url('URL de imagen inválida'),
+  imageUrl: z
+    .string()
+    .refine(
+      (v) => v.startsWith('/api/imagenes/fotos/') || /^https?:\/\//.test(v),
+      'URL de imagen inválida'
+    )
+    .optional(),
 });
 
 interface RouteParams {
@@ -21,10 +27,11 @@ interface RouteParams {
 }
 
 /**
- * PUT /api/spaces/[id]
+ * PUT/PATCH /api/spaces/[id]
  * Actualiza la información de un espacio existente. Requiere autenticación y rol ADMIN.
+ * Si no se envía imageUrl, se conserva la imagen actual.
  */
-export async function PUT(request: Request, props: RouteParams): Promise<NextResponse> {
+async function updateSpace(request: Request, props: RouteParams): Promise<NextResponse> {
   try {
     const params = await props.params;
     const spaceId = params.id;
@@ -89,7 +96,7 @@ export async function PUT(request: Request, props: RouteParams): Promise<NextRes
       );
     }
 
-    console.error('Error en PUT /api/spaces/[id]:', error);
+    console.error('Error en PUT/PATCH /api/spaces/[id]:', error);
 
     return NextResponse.json(
       { error: 'Error interno del servidor' },
@@ -97,3 +104,6 @@ export async function PUT(request: Request, props: RouteParams): Promise<NextRes
     );
   }
 }
+
+export const PUT = updateSpace;
+export const PATCH = updateSpace;
