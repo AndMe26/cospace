@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { subirFoto } from "@/lib/s3/upload";
+import { cookies } from "next/headers";
+import { verifyAccessToken } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
@@ -11,6 +13,18 @@ const TIPOS: Record<string, string> = {
 const MAX_BYTES = 5 * 1024 * 1024;
 
 export async function POST(request: Request): Promise<NextResponse> {
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get("accessToken")?.value;
+  if (!accessToken) {
+    return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+  }
+  const payload = await verifyAccessToken(accessToken);
+  if (!payload || payload.role !== "ADMIN") {
+    return NextResponse.json({ error: "Acceso denegado" }, { status: 403 });
+  }
+
+
+
   const formData = await request.formData();
   const foto = formData.get("foto");
 
