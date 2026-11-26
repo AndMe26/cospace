@@ -14,7 +14,9 @@ const updateSpaceSchema = z.object({
   imageUrl: z
     .string()
     .refine(
-      (v) => v.startsWith('/api/imagenes/fotos/') || /^https?:\/\//.test(v),
+      (v) =>
+        /^\/api\/imagenes\/(fotos|originals)\//.test(v) ||
+        /^https?:\/\//.test(v),
       'URL de imagen inválida'
     )
     .optional(),

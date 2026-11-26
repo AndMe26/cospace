@@ -14,7 +14,7 @@ export async function subirFoto({
   const bucket = process.env.S3_BUCKET_NAME;
   if (!bucket) throw new Error("Falta S3_BUCKET_NAME");
 
-  const key = `fotos/${randomUUID()}.${extension}`;
+  const key = `originals/${randomUUID()}.${extension}`;
 
   await s3Client.send(new PutObjectCommand({
     Bucket: bucket, Key: key,

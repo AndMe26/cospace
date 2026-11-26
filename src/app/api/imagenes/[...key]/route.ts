@@ -3,6 +3,9 @@ import { s3Client } from "@/lib/s3/client";
 
 export const runtime = "nodejs";
 
+// fotos/ se conserva para las imágenes que ya estaban guardadas
+const PREFIJOS_PERMITIDOS = ["fotos/", "originals/", "thumbnails/"];
+
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ key: string[] }> }
@@ -10,8 +13,11 @@ export async function GET(
   const { key: parts } = await params;
   const key = parts.join("/");
 
-  // Solo se pueden leer fotos de la carpeta fotos/
-  if (!key.startsWith("fotos/") || key.includes("..")) {
+  // Solo se pueden leer las carpetas permitidas
+  if (
+    !PREFIJOS_PERMITIDOS.some((prefijo) => key.startsWith(prefijo)) ||
+    key.includes("..")
+  ) {
     return new Response("No encontrado", { status: 404 });
   }
 
